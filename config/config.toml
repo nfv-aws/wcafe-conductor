@@ -1,0 +1,9 @@
+[db]
+endpoint = "AMAZON_RDS_ENDPOINT"
+user = "admin"
+password = "DB_PASSWORD"
+name = "wcafe"
+
+[sqs]
+region = "AWS_REGION"
+queue_url  = "SQS_QUEUE_URL"
