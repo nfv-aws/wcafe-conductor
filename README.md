@@ -33,6 +33,7 @@ export WCAFE_SQS_QUEUE_URL=queue_url
 
 source ~/.bashrc
 ```
+
 configファイルの直接編集でも可能
 ```
 vi config/config.toml
