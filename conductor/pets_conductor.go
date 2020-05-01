@@ -34,7 +34,7 @@ func ReceiveMessage(svc *sqs.SQS) error {
 		// 一度に取得する最大メッセージ数。最大でも1まで。
 		MaxNumberOfMessages: aws.Int64(1),
 		// これでキューが空の場合はロングポーリング(20秒間繋ぎっぱなし)になる。
-		//		WaitTimeSeconds: aws.Int64(20),
+		WaitTimeSeconds: aws.Int64(20),
 	}
 	resp, err := svc.ReceiveMessage(params)
 
@@ -96,8 +96,9 @@ func ChangeStatus(id string) (Pet, error) {
 // キューを刈り取り、POSTの処理のSTATUSの値を"CREATED"に書き換える
 func GetMessage() {
 	svc := Init()
-	err := ReceiveMessage(svc)
-	if err != nil {
-		log.Fatal(err)
+	for {
+		if err := ReceiveMessage(svc); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
