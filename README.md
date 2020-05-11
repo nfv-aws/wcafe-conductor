@@ -1,7 +1,7 @@
 # wcafe-conductor
 # これなに
 wcafe-apiで実行したAPIを契機にキューを介して処理をするコンダクター
-現時点ではpetsのPOST APIを実行時にDBのstatusがなるものを、コンダクターを実行するとCREATEDへ変更する。
+現時点ではpetsのPOST APIを実行時にDBのstatusが「PENDING_CREATE」となるものを、コンダクターを実行するとCREATEDへ変更する。
 
 # リポジトリクローン
 ```
@@ -21,7 +21,7 @@ git clone git@github.com:nfv-aws/wcafe-conductor.git
 # 環境設定
 DB設定とAWSのSQS操作用の設定を追加
 
-bashrcとかに以下を追記
+bashrcに以下を追記
 
 ```
 vi ~/.bashrc
@@ -34,6 +34,7 @@ export WCAFE_SQS_QUEUE_URL=queue_url
 source ~/.bashrc
 ```
 
+configファイルの直接編集でも可能
 ```
 vi config/config.toml
 ```
