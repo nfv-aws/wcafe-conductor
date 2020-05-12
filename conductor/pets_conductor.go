@@ -13,6 +13,9 @@ import (
 // User is alias of entity.Pets struct
 type Pet entity.Pet
 
+// User is alias of entity.Stores struct
+type Store entity.Store
+
 var (
 	svc        *sqs.SQS
 	aws_region string
@@ -50,10 +53,11 @@ func ReceiveMessage(svc *sqs.SQS) error {
 		return nil
 	}
 
-	// メッセージの数だけループを回し、STATUSの値を変更
+	// メッセージの数だけループを回し、petのSTATUSの値を変更あるいはstoreのStrongPointを変更する
 	for _, m := range resp.Messages {
 		log.Println(*m.Body)
 		ChangeStatus(*m.Body)
+		ChangeStrongPoint(*m.Body)
 		// 処理が終わったキューを削除
 		if err := DeleteMessage(svc, m); err != nil {
 			log.Println(err)
@@ -89,11 +93,25 @@ func ChangeStatus(id string) (Pet, error) {
 		return u, err
 	}
 	log.Println("CHANGE STATUS")
-
 	return u, nil
 }
 
-// キューを刈り取り、POSTの処理のSTATUSの値を"CREATED"に書き換える
+// DBのStrongPointを"sqs_test"に変更する
+func ChangeStrongPoint(id string) (Store, error) {
+	db := db.GetDB()
+	var u Store
+
+	// storesのStrongPointを変更
+	u.StrongPoint = "sqs_test"
+
+	if err := db.Table("stores").Where("id = ?", id).Updates(&u).Error; err != nil {
+		return u, err
+	}
+	log.Println("CHANGE StrongPoint")
+	return u, nil
+}
+
+// キューを刈り取り、petsあるいはstoresのPOST時の処理をおこなう
 func GetMessage() {
 	svc := Init()
 	for {

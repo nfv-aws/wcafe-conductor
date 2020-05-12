@@ -1,7 +1,9 @@
 # wcafe-conductor
 # これなに
 wcafe-apiで実行したAPIを契機にキューを介して処理をするコンダクター
-現時点ではpetsのPOST APIを実行時にDBのstatusがなるものを、コンダクターを実行するとCREATEDへ変更する。
+現時点では以下の処理が走る。
+・petsのPOST APIを実行時にDBのstatusがなるものを、コンダクターを実行するとCREATEDへ変更する。
+・storesのPOST APIを実行時にDBのstrong_pointが、コンダクターを実行すると"sqs_test"に変更する。
 
 # リポジトリクローン
 ```
