@@ -12,6 +12,7 @@ func main() {
 	// それぞれとの連絡のためのchを作成する
 	petsFin := make(chan bool)
 	storesFin := make(chan bool)
+	usersFin := make(chan bool)
 	go func() {
 		conductor.PetsGetMessage()
 		petsFin <- true
@@ -20,9 +21,14 @@ func main() {
 		conductor.StoresGetMessage()
 		storesFin <- true
 	}()
+	go func() {
+		conductor.UsersGetMessage()
+		usersFin <- true
+	}()
 	// 全部が終わるまでブロックし続ける
 	<-petsFin
 	<-storesFin
+	<-usersFin
 
 	db.Close()
 }
