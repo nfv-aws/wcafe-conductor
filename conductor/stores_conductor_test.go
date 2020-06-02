@@ -1,11 +1,11 @@
 package conductor
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	//	"github.com/aws/aws-sdk-go/aws"
+	//	"github.com/aws/aws-sdk-go/service/sqs"
+	//	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	"github.com/nfv-aws/wcafe-conductor/mocks"
-	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 

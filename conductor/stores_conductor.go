@@ -68,7 +68,8 @@ func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 		QueueUrl:      aws.String(stores_queue_url),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
 	}
-	_, err := stores_svc.DeleteMessage(params)
+	a, err := stores_svc.DeleteMessage(params)
+	log.Println(a)
 
 	if err != nil {
 		return err
