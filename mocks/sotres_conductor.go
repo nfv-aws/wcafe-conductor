@@ -19,7 +19,9 @@ func (m *MockSQSSvc) StoreReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.R
 }
 
 func (m *MockSQSSvc) StoreDeleteMessage(input *sqs.DeleteMessageInput) (*sqs.DeleteMessageOutput, error) {
-	return &sqs.ReceiveMessageOutput{}, nil
+	return &sqs.ReceiveMessageOutput{
+		Messages: 1,
+	}, nil
 }
 
 // Update mocks base method.
