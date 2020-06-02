@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	"github.com/nfv-aws/wcafe-api-controller/config"
 	"github.com/nfv-aws/wcafe-api-controller/db"
 	"github.com/nfv-aws/wcafe-api-controller/entity"
@@ -27,7 +28,7 @@ func StoresInit() *sqs.SQS {
 	return stores_svc
 }
 
-func StoresReceiveMessage(stores_svc *sqs.SQS) error {
+func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(stores_queue_url),
 		// 一度に取得する最大メッセージ数。最大でも1まで。
@@ -62,7 +63,7 @@ func StoresReceiveMessage(stores_svc *sqs.SQS) error {
 }
 
 // メッセージを削除する。
-func StoresDeleteMessage(stores_svc *sqs.SQS, msg *sqs.Message) error {
+func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(stores_queue_url),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
