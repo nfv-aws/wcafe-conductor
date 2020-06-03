@@ -47,6 +47,9 @@ func (m *MockSQSSvc) DeleteMessage(input *sqs.DeleteMessageInput) (*sqs.DeleteMe
 
 func UpdateMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
 	um, err := gorm.Open("mysql", db)
 	if err != nil {
 		return nil, nil, err
