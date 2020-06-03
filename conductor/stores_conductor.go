@@ -1,13 +1,17 @@
 package conductor
 
 import (
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"github.com/jinzhu/gorm"
+
 	"github.com/nfv-aws/wcafe-api-controller/config"
 	"github.com/nfv-aws/wcafe-api-controller/db"
 	"github.com/nfv-aws/wcafe-api-controller/entity"
-	"log"
 )
 
 // User is alias of entity.Stores struct
@@ -27,7 +31,7 @@ func StoresInit() *sqs.SQS {
 	return stores_svc
 }
 
-func StoresReceiveMessage(stores_svc *sqs.SQS) error {
+func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(stores_queue_url),
 		// 一度に取得する最大メッセージ数。最大でも1まで。
@@ -49,10 +53,11 @@ func StoresReceiveMessage(stores_svc *sqs.SQS) error {
 		return nil
 	}
 
+	db := db.GetDB()
 	// メッセージの数だけループを回し、storeのStrongPointを変更する
 	for _, m := range resp.Messages {
 		log.Println(*m.Body)
-		ChangeStrongPoint(*m.Body)
+		ChangeStrongPoint(*m.Body, db)
 		// 処理が終わったキューを削除
 		if err := StoresDeleteMessage(stores_svc, m); err != nil {
 			log.Println(err)
@@ -62,7 +67,7 @@ func StoresReceiveMessage(stores_svc *sqs.SQS) error {
 }
 
 // メッセージを削除する。
-func StoresDeleteMessage(stores_svc *sqs.SQS, msg *sqs.Message) error {
+func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(stores_queue_url),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
@@ -76,9 +81,8 @@ func StoresDeleteMessage(stores_svc *sqs.SQS, msg *sqs.Message) error {
 }
 
 // DBのStrongPointを"sqs_test"に変更する
-func ChangeStrongPoint(id string) (Store, error) {
-	db := db.GetDB()
-	var u Store
+func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
+	var u entity.Store
 
 	// storesのStrongPointを変更
 	u.StrongPoint = "sqs_test"
