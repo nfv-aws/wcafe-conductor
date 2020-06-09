@@ -21,10 +21,6 @@ import (
 // User is alias of entity.Stores struct
 type Supply entity.Supply
 
-const (
-	port = ":50051"
-)
-
 type server struct {
 	pb.UnimplementedSuppliesServer
 }
@@ -40,6 +36,8 @@ func (s *server) SupplyList(ctx context.Context, in *pb.SupplyRequest) (*pb.Supp
 }
 
 func SuppliesGetMessage() {
+	config.Configure()
+	var port = ":" + config.C.Conductor.Port
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
