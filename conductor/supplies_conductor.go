@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 
+	"github.com/nfv-aws/wcafe-api-controller/config"
 	"github.com/nfv-aws/wcafe-api-controller/entity"
 	pb "github.com/nfv-aws/wcafe-conductor/protoc"
 )
@@ -29,7 +30,6 @@ type server struct {
 }
 
 func (s *server) SupplyList(ctx context.Context, in *pb.SupplyRequest) (*pb.SupplyResponse, error) {
-	log.Printf("Received: %v", in.GetTable())
 	list := SupplyList(in.GetTable())
 	res, err := json.Marshal(list)
 	if err != nil {
@@ -55,12 +55,18 @@ var (
 	dynamodb *dynamo.DB
 )
 
-func SupplyList(target_table string) []Supply {
-	db := dynamo.New(session.New(), &aws.Config{
-		//	Credentials: c,
-		Region: aws.String("ap-northeast-1"),
+func Dynamo_Init() *dynamo.DB {
+	config.Configure()
+	aws_region = config.C.DynamoDB.Region
+	dynamodb := dynamo.New(session.New(), &aws.Config{
+		Region: aws.String(aws_region),
 	})
-	table := db.Table(target_table)
+	return dynamodb
+}
+
+func SupplyList(target_table string) []Supply {
+	dynamodb := Dynamo_Init()
+	table := dynamodb.Table(target_table)
 	var supplies []Supply
 	err := table.Scan().All(&supplies)
 	if err != nil {
