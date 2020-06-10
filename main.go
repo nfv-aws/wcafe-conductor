@@ -13,6 +13,7 @@ func main() {
 	petsFin := make(chan bool)
 	storesFin := make(chan bool)
 	usersFin := make(chan bool)
+	suppliesFin := make(chan bool)
 	go func() {
 		conductor.PetsGetMessage()
 		petsFin <- true
@@ -25,10 +26,15 @@ func main() {
 		conductor.UsersGetMessage()
 		usersFin <- true
 	}()
+	go func() {
+		conductor.SuppliesGetMessage()
+		suppliesFin <- true
+	}()
 	// 全部が終わるまでブロックし続ける
 	<-petsFin
 	<-storesFin
 	<-usersFin
+	<-suppliesFin
 
 	db.Close()
 }
