@@ -1,7 +1,7 @@
 package conductor
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -26,6 +26,7 @@ var (
 )
 
 func PetsInit() Queue {
+	log.Debug("Init Pets")
 	config.Configure()
 	aws_region = config.C.SQS.Region
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(aws_region)}))
@@ -37,6 +38,7 @@ func PetsInit() Queue {
 }
 
 func (q *Queue) PetsReceiveMessage() error {
+	log.Debug("PetsReceiveMessage")
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(q.URL),
 		// 一度に取得する最大メッセージ数。最大でも1まで。
@@ -50,21 +52,21 @@ func (q *Queue) PetsReceiveMessage() error {
 		return err
 	}
 
-	log.Printf("messages count: %d\n", len(resp.Messages))
+	log.Info("messages count: " + string(len(resp.Messages)) + "\n")
 
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
-		log.Println("empty queue.")
+		log.Info("empty queue.")
 		return nil
 	}
 
 	// メッセージの数だけループを回し、petのSTATUSの値を変更する
 	for _, m := range resp.Messages {
-		log.Println(*m.Body)
+		log.Info(*m.Body)
 		ChangeStatus(*m.Body)
 		// 処理が終わったキューを削除
 		if err := q.PetsDeleteMessage(m); err != nil {
-			log.Println(err)
+			log.Error(err)
 		}
 	}
 
@@ -73,6 +75,7 @@ func (q *Queue) PetsReceiveMessage() error {
 
 // メッセージを削除する。
 func (q *Queue) PetsDeleteMessage(msg *sqs.Message) error {
+	log.Debug("PetsDeleteMessage")
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(q.URL),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
@@ -87,6 +90,7 @@ func (q *Queue) PetsDeleteMessage(msg *sqs.Message) error {
 
 // DBのStatusをCREATEに変更する
 func ChangeStatus(id string) (Pet, error) {
+	log.Debug("Change Pets status")
 	db := db.GetDB()
 	var u Pet
 
@@ -102,6 +106,7 @@ func ChangeStatus(id string) (Pet, error) {
 
 // キューを刈り取り、petsのPOST時の処理をおこなう
 func PetsGetMessage() {
+	log.Debug("PetsGetMessage")
 	q := PetsInit()
 
 	for {

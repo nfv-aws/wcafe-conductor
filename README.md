@@ -20,6 +20,7 @@ git clone git@github.com:nfv-aws/wcafe-conductor.git
 "github.com/aws/aws-sdk-go/aws"
 "github.com/aws/aws-sdk-go/aws/session"
 "github.com/aws/aws-sdk-go/service/sqs"
+"github.com/sirupsen/logrus"
 ```
 # 環境設定
 DB設定とAWSのSQS操作用の設定を追加
@@ -46,4 +47,14 @@ vi config/config.toml
 # 動作確認
 ```
 go run main.go
+```
+# ログの設定方法
+ログは以下の3パターンを用意しており、DefaultではInfoモードとなっている。
+- Debugモード
+- Infoモード
+- Errorモード
+
+切り替え方は以下のように環境変数を設定して、プログラムを実行すればよい。
+```
+export LOG_LVE="Debug"
 ```
