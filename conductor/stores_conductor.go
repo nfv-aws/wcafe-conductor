@@ -1,7 +1,7 @@
 package conductor
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -23,6 +23,7 @@ var (
 )
 
 func StoresInit() *sqs.SQS {
+	log.Debug("Init Stores")
 	config.Configure()
 	aws_region = config.C.SQS.Region
 	stores_queue_url = config.C.SQS.Stores_Queue_Url
@@ -32,6 +33,7 @@ func StoresInit() *sqs.SQS {
 }
 
 func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
+	log.Debug("StoresReceiveMessage")
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(stores_queue_url),
 		// 一度に取得する最大メッセージ数。最大でも1まで。
@@ -68,6 +70,7 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
 
 // メッセージを削除する。
 func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
+	log.Debug("StoresDeleteMessage")
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(stores_queue_url),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
@@ -82,6 +85,7 @@ func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 
 // DBのStrongPointを"sqs_test"に変更する
 func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
+	log.Debug("ChangeStrongPoint")
 	var u entity.Store
 
 	// storesのStrongPointを変更
@@ -96,6 +100,7 @@ func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
 
 // キューを刈り取り、storesのPOST時の処理をおこなう
 func StoresGetMessage() {
+	log.Debug("StoresGetMessage")
 	stores_svc := StoresInit()
 	for {
 		if err := StoresReceiveMessage(stores_svc); err != nil {

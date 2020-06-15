@@ -1,7 +1,7 @@
 package conductor
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -22,6 +22,7 @@ var (
 
 func UsersInit() *sqs.SQS {
 	config.Configure()
+	log.Debug("Init Users")
 	aws_region = config.C.SQS.Region
 	users_queue_url = config.C.SQS.Users_Queue_Url
 	sess := session.Must(session.NewSession(&aws.Config{Region: aws.String(aws_region)}))
@@ -30,6 +31,7 @@ func UsersInit() *sqs.SQS {
 }
 
 func UsersReceiveMessage(users_svc *sqs.SQS) error {
+	log.Debug("UsersReceiveMessage")
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(users_queue_url),
 		// 一度に取得する最大メッセージ数。最大でも1まで。
@@ -65,6 +67,7 @@ func UsersReceiveMessage(users_svc *sqs.SQS) error {
 
 // メッセージを削除する。
 func UsersDeleteMessage(users_svc *sqs.SQS, msg *sqs.Message) error {
+	log.Debug("UsersDeleteMessageDe")
 	params := &sqs.DeleteMessageInput{
 		QueueUrl:      aws.String(users_queue_url),
 		ReceiptHandle: aws.String(*msg.ReceiptHandle),
@@ -79,6 +82,7 @@ func UsersDeleteMessage(users_svc *sqs.SQS, msg *sqs.Message) error {
 
 // DBのStatusをCREATEに変更する
 func ChangeUserStatus(id string) (User, error) {
+	log.Debug("ChangeUserStatus")
 	db := db.GetDB()
 	var u User
 
@@ -94,6 +98,7 @@ func ChangeUserStatus(id string) (User, error) {
 
 // キューを刈り取り、usersのPOST時の処理をおこなう
 func UsersGetMessage() {
+	log.Debug("UsersGetMessage")
 	users_svc := UsersInit()
 	for {
 		if err := UsersReceiveMessage(users_svc); err != nil {
