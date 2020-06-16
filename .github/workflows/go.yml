@@ -2,9 +2,9 @@ name: Conductor_Unit_Test
 
 on:
   push:
- #   branches: [ master ]
- # pull_request:
-  #  branches: [ master ]
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
 
@@ -31,19 +31,4 @@ jobs:
         fi
     - name: Test
       run: go test -vet=off -v ./conductor/...
-  build:
-    name: docker build 
-    runs-on: ubuntu-latest
-    steps:
-    
-    - name: checkout
-      uses: actions/checkout@v2
-      
-    - name: Build the Docker image
-      env:
-        WCAFE_DB_PASSWORD: ${{ secrets.WCAFE_DB_PASSWORD }}
-        WCAFE_DB_ENDPOINT: ${{ secrets.WCAFE_DB_ENDPOINT }}
-      run: docker build --build-arg DB_PASS=$(echo $WCAFE_DB_PASSWORD) --build-arg DB_ENDPOINT=$(echo $WCAFE_DB_ENDPOINT) -t wcafe .
-    - name: confirm images
-      run: docker images
  
