@@ -2,9 +2,9 @@ name: Conductor_Unit_Test
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+ #   branches: [ master ]
+ # pull_request:
+  #  branches: [ master ]
 
 jobs:
 
@@ -46,3 +46,5 @@ jobs:
         WCAFE_DB_PASSWORD: ${{ secrets.WCAFE_DB_PASSWORD }}
         WCAFE_DB_ENDPOINT: ${{ secrets.WCAFE_DB_ENDPOINT }}
       run: docker build --build-arg DB_PASS=$(echo $WCAFE_DB_PASSWORD) --build-arg DB_ENDPOINT=$(echo $WCAFE_DB_ENDPOINT) -t wcafe .
+    - name: confirm images
+      run: docker images
