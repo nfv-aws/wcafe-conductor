@@ -67,9 +67,7 @@ func TestChangeStrongPointOK(t *testing.T) {
 		sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	resp, err := ChangeStrongPoint(*m.Body, db)
-	if err != nil {
+	if err := ChangeStrongPoint(*m.Body, db); err != nil {
 		t.Error(err)
 	}
-	log.Println(resp)
 }

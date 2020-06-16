@@ -63,7 +63,10 @@ func StoresChangeDB(stores_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) 
 	// メッセージの数だけループを回し、storeのStrongPointを変更する
 	for _, m := range resp.Messages {
 		log.Println(*m.Body)
-		ChangeStrongPoint(*m.Body, db)
+		if err := ChangeStrongPoint(*m.Body, db); err != nil {
+			log.Fatal(err)
+			return err
+		}
 		// 処理が終わったキューを削除
 		if err := StoresDeleteMessage(stores_svc, m); err != nil {
 			log.Fatal(err)
@@ -89,7 +92,7 @@ func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 }
 
 // DBのStrongPointを"sqs_test"に変更する
-func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
+func ChangeStrongPoint(id string, db *gorm.DB) error {
 	log.Debug("ChangeStrongPoint")
 	var u entity.Store
 
@@ -97,10 +100,10 @@ func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
 	u.StrongPoint = "sqs_test"
 
 	if err := db.Table("stores").Where("id = ?", id).Updates(&u).Error; err != nil {
-		return u, err
+		return err
 	}
 	log.Println("CHANGE StrongPoint")
-	return u, nil
+	return nil
 }
 
 // キューを刈り取り、storesのPOST時の処理をおこなう
