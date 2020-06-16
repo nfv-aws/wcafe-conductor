@@ -32,7 +32,7 @@ func StoresInit() *sqs.SQS {
 	return stores_svc
 }
 
-func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
+func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, error) {
 	log.Debug("StoresReceiveMessage")
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(stores_queue_url),
@@ -44,7 +44,7 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
 	resp, err := stores_svc.ReceiveMessage(params)
 
 	if err != nil {
-		return err
+		return resp, err
 	}
 
 	log.Printf("messages count: %d\n", len(resp.Messages))
@@ -52,17 +52,25 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
 		log.Println("empty queue.")
-		return nil
 	}
 
+	return resp, nil
+}
+
+func StoresChangeDB(stores_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) error {
+	log.Debug("StoresChangeDB")
 	db := db.GetDB()
 	// メッセージの数だけループを回し、storeのStrongPointを変更する
 	for _, m := range resp.Messages {
 		log.Println(*m.Body)
-		ChangeStrongPoint(*m.Body, db)
+		if err := ChangeStrongPoint(*m.Body, db); err != nil {
+			log.Fatal(err)
+			return err
+		}
 		// 処理が終わったキューを削除
 		if err := StoresDeleteMessage(stores_svc, m); err != nil {
-			log.Println(err)
+			log.Fatal(err)
+			return err
 		}
 	}
 	return nil
@@ -84,7 +92,7 @@ func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 }
 
 // DBのStrongPointを"sqs_test"に変更する
-func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
+func ChangeStrongPoint(id string, db *gorm.DB) error {
 	log.Debug("ChangeStrongPoint")
 	var u entity.Store
 
@@ -92,10 +100,10 @@ func ChangeStrongPoint(id string, db *gorm.DB) (entity.Store, error) {
 	u.StrongPoint = "sqs_test"
 
 	if err := db.Table("stores").Where("id = ?", id).Updates(&u).Error; err != nil {
-		return u, err
+		return err
 	}
 	log.Println("CHANGE StrongPoint")
-	return u, nil
+	return nil
 }
 
 // キューを刈り取り、storesのPOST時の処理をおこなう
@@ -103,8 +111,13 @@ func StoresGetMessage() {
 	log.Debug("StoresGetMessage")
 	stores_svc := StoresInit()
 	for {
-		if err := StoresReceiveMessage(stores_svc); err != nil {
+		resp, err := StoresReceiveMessage(stores_svc)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := StoresChangeDB(stores_svc, resp); err != nil {
 			log.Fatal(err)
 		}
 	}
+
 }
