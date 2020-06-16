@@ -32,7 +32,7 @@ func StoresInit() *sqs.SQS {
 	return stores_svc
 }
 
-func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) error {
+func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, error) {
 	log.Debug("StoresReceiveMessage")
 	params := &sqs.ReceiveMessageInput{
 		QueueUrl: aws.String(stores_queue_url),
