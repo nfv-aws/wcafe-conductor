@@ -4,10 +4,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 	//	gin "github.com/gin-gonic/gin"
-	"github.com/DATA-DOG/go-sqlmock"
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
 	"github.com/jinzhu/gorm"
-	entity "github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 type MockSQSSvc struct {
@@ -15,26 +14,26 @@ type MockSQSSvc struct {
 	Resp sqs.ReceiveMessageOutput
 }
 
-// MockStoreService is a mock of StoreService interface.
-type MockStoreService struct {
+// MockStoreConductor is a mock of StoreConductor interface.
+type MockStoreConductor struct {
 	ctrl     *gomock.Controller
-	recorder *MockStoreServiceMockRecorder
+	recorder *MockStoreConductorMockRecorder
 }
 
-// MockStoreServiceMockRecorder is the mock recorder for MockStoreService.
-type MockStoreServiceMockRecorder struct {
-	mock *MockStoreService
+// MockStoreConductorMockRecorder is the mock recorder for MockStoreConductor.
+type MockStoreConductorMockRecorder struct {
+	mock *MockStoreConductor
 }
 
-// NewMockStoreService creates a new mock instance.
-func NewMockStoreService(ctrl *gomock.Controller) *MockStoreService {
-	mock := &MockStoreService{ctrl: ctrl}
-	mock.recorder = &MockStoreServiceMockRecorder{mock}
+// NewMockStoreConductor creates a new mock instance.
+func NewMockStoreConductor(ctrl *gomock.Controller) *MockStoreConductor {
+	mock := &MockStoreConductor{ctrl: ctrl}
+	mock.recorder = &MockStoreConductorMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockStoreService) EXPECT() *MockStoreServiceMockRecorder {
+func (m *MockStoreConductor) EXPECT() *MockStoreConductorMockRecorder {
 	return m.recorder
 }
 func (m *MockSQSSvc) ReceiveMessage(input *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
@@ -55,14 +54,4 @@ func UpdateMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 		return nil, nil, err
 	}
 	return um, mock, nil
-}
-
-// Update mocks base method.
-func (m *MockStoreService) ChangeStrongPoint(id string) (entity.Store, error) {
-
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", id)
-	ret0, _ := ret[0].(entity.Store)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
 }
