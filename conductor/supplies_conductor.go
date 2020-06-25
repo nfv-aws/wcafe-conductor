@@ -47,7 +47,7 @@ func SuppliesGetMessage() {
 	s := grpc.NewServer()
 	pb.RegisterSuppliesServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
-		log.Fatal("failed to serve: %v", err)
+		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
