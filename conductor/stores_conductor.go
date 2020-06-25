@@ -47,7 +47,7 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput
 		return resp, err
 	}
 
-	log.Printf("messages count: %d\n", len(resp.Messages))
+	log.Info("messages count: " + string(len(resp.Messages)) + "\n")
 
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
@@ -62,7 +62,7 @@ func StoresChangeDB(stores_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) 
 	db := db.GetDB()
 	// メッセージの数だけループを回し、storeのStrongPointを変更する
 	for _, m := range resp.Messages {
-		log.Println(*m.Body)
+		log.Debug(*m.Body)
 		if err := ChangeStrongPoint(*m.Body, db); err != nil {
 			log.Fatal(err)
 			return err
