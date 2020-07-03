@@ -18,10 +18,12 @@ git clone git@github.com:nfv-aws/wcafe-conductor.git
 ### 事前準備  
 #### パッケージインストール
 ```
-"github.com/aws/aws-sdk-go/aws"
-"github.com/aws/aws-sdk-go/aws/session"
-"github.com/aws/aws-sdk-go/service/sqs"
-"github.com/sirupsen/logrus"
+go get github.com/aws/aws-sdk-go/aws
+go get github.com/aws/aws-sdk-go/aws/session
+go get github.com/aws/aws-sdk-go/service/sqs
+go get github.com/sirupsen/logrus
+go get github.com/rs/zerolog/log
+go get github.com/guregu/dynamo
 ```
 #### 環境設定
 DB設定とAWSのSQS操作用の設定を追加
