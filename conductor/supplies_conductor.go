@@ -25,14 +25,24 @@ type server struct {
 	pb.UnimplementedSuppliesServer
 }
 
-func (s *server) SupplyList(ctx context.Context, in *pb.SupplyRequest) (*pb.SupplyResponse, error) {
+func (s *server) SupplyList(ctx context.Context, in *pb.SupplyListRequest) (*pb.SupplyResponse, error) {
 	log.Debug("SupplyList Receive gRPC Message: " + in.GetTable())
-	list := SupplyList(in.GetTable())
+	list := supplylist(in.GetTable())
 	res, err := json.Marshal(list)
 	if err != nil {
 		log.Panic(err)
 	}
+	return &pb.SupplyResponse{Message: string(res)}, nil
+}
 
+func (s *server) SupplyCreate(ctx context.Context, in *pb.SupplyCreateRequest) (*pb.SupplyResponse, error) {
+	log.Debug("SupplyList Receive gRPC Message1: " + in.GetTable())
+	log.Debug("SupplyList Receive gRPC Message2: " + in.GetBody())
+	supply := supplycreate(in.GetTable(), in.GetBody())
+	res, err := json.Marshal(supply)
+	if err != nil {
+		log.Panic(err)
+	}
 	return &pb.SupplyResponse{Message: string(res)}, nil
 }
 
@@ -65,7 +75,7 @@ func Dynamo_Init() *dynamo.DB {
 	return dynamodb
 }
 
-func SupplyList(target_table string) []Supply {
+func supplylist(target_table string) []Supply {
 	dynamodb := Dynamo_Init()
 	log.Debug("GetSupplyList by DynamoDB")
 	table := dynamodb.Table(target_table)
@@ -77,4 +87,21 @@ func SupplyList(target_table string) []Supply {
 	}
 	log.Println(supplies)
 	return supplies
+}
+
+func supplycreate(target_table string, body string) Supply {
+	dynamodb := Dynamo_Init()
+	log.Debug("CreateSupply by DynamoDB")
+	table := dynamodb.Table(target_table)
+	var supply Supply
+	err := json.Unmarshal([]byte(body), &supply)
+	if err != nil {
+		panic(err.Error())
+	}
+	log.Debug("Put Data")
+	err = table.Put(supply).Run()
+	if err != nil {
+		panic(err.Error())
+	}
+	return supply
 }
