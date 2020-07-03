@@ -66,18 +66,8 @@ export LOG_LVE="Debug"
 ### Conductor
 
 ```
-go test -vet=off -v ./conductor/... 
+go test -v ./conductor/... 
 
 PASS
 ok      github.com/nfv-aws/wcafe-conductor/conductor    0.014s
-```
-
-`-vet=off` オプションをつけないとテスト対象コードに含まれるフォーマット文の影響で以下のエラーが出るので注意
-
-```
-$ go test -v ./conductor/...
-# github.com/nfv-aws/wcafe-conductor/conductor
-conductor/supplies_conductor.go:50:3: Fatal call has possible formatting directive %v
-FAIL    github.com/nfv-aws/wcafe-conductor/conductor [build failed]
-FAIL
 ```
