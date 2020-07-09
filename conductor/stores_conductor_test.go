@@ -50,7 +50,7 @@ func TestStoresDeleteMessageOK(t *testing.T) {
 	}
 }
 
-func TestStoresChangeStrongPointOK(t *testing.T) {
+func TestStoresChangeStatusOK(t *testing.T) {
 	db, mock, err := mocks.UpdateMock()
 	if err != nil {
 		t.Fatal(err)
@@ -63,12 +63,12 @@ func TestStoresChangeStrongPointOK(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(
-		"UPDATE `stores` SET `strong_point` = ? WHERE (id = ?)")).
-		WithArgs("sqs_test", *m.Body).WillReturnResult(
+		"UPDATE `stores` SET `status` = ? WHERE (id = ?)")).
+		WithArgs("CREATED", *m.Body).WillReturnResult(
 		sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
-	if err := ChangeStrongPoint(*m.Body, db); err != nil {
+	if err := StoresChangeStatus(*m.Body, db); err != nil {
 		t.Error(err)
 	}
 }

@@ -47,7 +47,9 @@ func UsersReceiveMessage(users_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, 
 		return resp, err
 	}
 
-	log.Info("messages count: " + string(len(resp.Messages)) + "\n")
+	log.WithFields(log.Fields{
+		"count": len(resp.Messages),
+	}).Info("messages ")
 
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
@@ -60,7 +62,7 @@ func UsersReceiveMessage(users_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, 
 func UsersChangeDB(users_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) error {
 	log.Debug("UsersChangeDB")
 	db := db.GetDB()
-	// メッセージの数だけループを回し、userのSTATUSの値を変更する
+	// メッセージの数だけループを回し、userのStatusを変更する
 	for _, m := range resp.Messages {
 		log.Debug(*m.Body)
 		if err := UsersChangeStatus(*m.Body, db); err != nil {
@@ -96,13 +98,13 @@ func UsersChangeStatus(id string, db *gorm.DB) error {
 	log.Debug("UsersChangeStatus")
 	var u entity.User
 
-	// usersのstatusを変更(今はお試しでAddressを変更)
-	u.Address = "Kyoto"
+	// usersのstatusを変更
+	u.Status = "CREATED"
 
 	if err := db.Table("users").Where("id = ?", id).Updates(&u).Error; err != nil {
 		return err
 	}
-	log.Println("CHANGE STATUS")
+	log.Println("CHANGE Users Status")
 	return nil
 }
 
