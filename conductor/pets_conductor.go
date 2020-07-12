@@ -48,7 +48,9 @@ func PetsReceiveMessage(pets_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, er
 		return resp, err
 	}
 
-	log.Info("messages count: " + string(len(resp.Messages)) + "\n")
+	log.WithFields(log.Fields{
+		"count": len(resp.Messages),
+	}).Info("messages ")
 
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
@@ -61,7 +63,7 @@ func PetsReceiveMessage(pets_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput, er
 func PetsChangeDB(pets_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) error {
 	log.Debug("PetsChangeDB")
 	db := db.GetDB()
-	// メッセージの数だけループを回し、petのStrongPointを変更する
+	// メッセージの数だけループを回し、petのStatusを変更する
 	for _, m := range resp.Messages {
 		log.Debug(*m.Body)
 		if err := PetsChangeStatus(*m.Body, db); err != nil {
@@ -103,7 +105,7 @@ func PetsChangeStatus(id string, db *gorm.DB) error {
 	if err := db.Table("pets").Where("id = ?", id).Updates(&u).Error; err != nil {
 		return err
 	}
-	log.Println("CHANGE Status")
+	log.Println("CHANGE Pets Status")
 	return nil
 }
 

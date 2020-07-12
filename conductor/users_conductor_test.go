@@ -58,8 +58,8 @@ func TestUsersChangeStatusOK(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(
-		"UPDATE `users` SET `address` = ? WHERE (id = ?)")).
-		WithArgs("Kyoto", *m.Body).WillReturnResult(
+		"UPDATE `users` SET `status` = ? WHERE (id = ?)")).
+		WithArgs("CREATED", *m.Body).WillReturnResult(
 		sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 

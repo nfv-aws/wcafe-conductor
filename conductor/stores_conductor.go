@@ -47,7 +47,9 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput
 		return resp, err
 	}
 
-	log.Info("messages count: " + string(len(resp.Messages)) + "\n")
+	log.WithFields(log.Fields{
+		"count": len(resp.Messages),
+	}).Info("messages ")
 
 	// 取得したキューの数が0の場合emptyと表示
 	if len(resp.Messages) == 0 {
@@ -60,10 +62,10 @@ func StoresReceiveMessage(stores_svc sqsiface.SQSAPI) (*sqs.ReceiveMessageOutput
 func StoresChangeDB(stores_svc sqsiface.SQSAPI, resp *sqs.ReceiveMessageOutput) error {
 	log.Debug("StoresChangeDB")
 	db := db.GetDB()
-	// メッセージの数だけループを回し、storeのStrongPointを変更する
+	// メッセージの数だけループを回し、storeのStatusを変更する
 	for _, m := range resp.Messages {
 		log.Debug(*m.Body)
-		if err := ChangeStrongPoint(*m.Body, db); err != nil {
+		if err := StoresChangeStatus(*m.Body, db); err != nil {
 			log.Fatal(err)
 			return err
 		}
@@ -91,18 +93,18 @@ func StoresDeleteMessage(stores_svc sqsiface.SQSAPI, msg *sqs.Message) error {
 	return nil
 }
 
-// DBのStrongPointを"sqs_test"に変更する
-func ChangeStrongPoint(id string, db *gorm.DB) error {
-	log.Debug("ChangeStrongPoint")
+// DBのStatusを"CREATED"に変更する
+func StoresChangeStatus(id string, db *gorm.DB) error {
+	log.Debug("StoresChangeStatus")
 	var u entity.Store
 
-	// storesのStrongPointを変更
-	u.StrongPoint = "sqs_test"
+	// storesのStatusを変更
+	u.Status = "CREATED"
 
 	if err := db.Table("stores").Where("id = ?", id).Updates(&u).Error; err != nil {
 		return err
 	}
-	log.Println("CHANGE StrongPoint")
+	log.Println("CHANGE Stores Status")
 	return nil
 }
 
