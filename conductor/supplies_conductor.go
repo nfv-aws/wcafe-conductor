@@ -2,16 +2,15 @@ package conductor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
-
-	"encoding/json"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 
 	"github.com/nfv-aws/wcafe-api-controller/config"
 	"github.com/nfv-aws/wcafe-api-controller/entity"
@@ -36,9 +35,23 @@ func (s *server) SupplyList(ctx context.Context, in *pb.SupplyListRequest) (*pb.
 }
 
 func (s *server) SupplyCreate(ctx context.Context, in *pb.SupplyCreateRequest) (*pb.SupplyResponse, error) {
-	log.Debug("SupplyList Receive gRPC Message1: " + in.GetTable())
-	log.Debug("SupplyList Receive gRPC Message2: " + in.GetBody())
+	log.Debug("SupplyCreate Receive gRPC Message1: " + in.GetTable())
+	log.Debug("SupplyCreate Receive gRPC Message2: " + in.GetBody())
 	supply := supplycreate(in.GetTable(), in.GetBody())
+	res, err := json.Marshal(supply)
+	if err != nil {
+		log.Panic(err)
+	}
+	return &pb.SupplyResponse{Message: string(res)}, nil
+}
+
+func (s *server) SupplyDelete(ctx context.Context, in *pb.SupplyDeleteRequest) (*pb.SupplyResponse, error) {
+	log.Debug("SupplyDelete Receive gRPC Message1: " + in.GetTable())
+	log.Debug("SupplyDelete Receive gRPC Message2: " + in.GetId())
+	supply, err := supplydelete(in.GetTable(), in.GetId())
+	if err != nil {
+		return nil, err
+	}
 	res, err := json.Marshal(supply)
 	if err != nil {
 		log.Panic(err)
@@ -104,4 +117,21 @@ func supplycreate(target_table string, body string) Supply {
 		panic(err.Error())
 	}
 	return supply
+}
+
+func supplydelete(target_table string, id string) (Supply, error) {
+	dynamodb := Dynamo_Init()
+	log.Debug("DeleteSupply by DynamoDB")
+	table := dynamodb.Table(target_table)
+	var supply Supply
+
+	if err := table.Get("id", id).One(&supply); err != nil {
+		return supply, err
+	}
+
+	log.Debug("Delete Data")
+	if err := table.Delete("id", id).Run(); err != nil {
+		panic(err.Error())
+	}
+	return supply, nil
 }
