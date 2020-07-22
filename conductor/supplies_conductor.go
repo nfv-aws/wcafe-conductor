@@ -45,6 +45,24 @@ func (s *server) SupplyCreate(ctx context.Context, in *pb.SupplyCreateRequest) (
 	return &pb.SupplyResponse{Message: string(res)}, nil
 }
 
+func (s *server) SupplyUpdate(ctx context.Context, in *pb.SupplyUpdateRequest) (*pb.SupplyResponse, error) {
+	log.Debug("SupplyUpdate Receive gRPC Message1: " + in.GetTable())
+	log.Debug("SupplyUpdate Receive gRPC Message2: " + in.GetId())
+	log.Debug("SupplyUpdate Receive gRPC Message3: " + in.GetBody())
+
+	supply, err := supplyupdate(in.GetTable(), in.GetId(), in.GetBody())
+	if err != nil {
+		log.Error(err)
+		return &pb.SupplyResponse{}, err
+	}
+	res, err := json.Marshal(supply)
+	if err != nil {
+		log.Panic(err)
+		return &pb.SupplyResponse{Message: string(res)}, err
+	}
+	return &pb.SupplyResponse{Message: string(res)}, nil
+}
+
 func (s *server) SupplyDelete(ctx context.Context, in *pb.SupplyDeleteRequest) (*pb.SupplyResponse, error) {
 	log.Debug("SupplyDelete Receive gRPC Message1: " + in.GetTable())
 	log.Debug("SupplyDelete Receive gRPC Message2: " + in.GetId())
@@ -117,6 +135,31 @@ func supplycreate(target_table string, body string) Supply {
 		panic(err.Error())
 	}
 	return supply
+}
+
+func supplyupdate(target_table string, id string, body string) (Supply, error) {
+	dynamodb := Dynamo_Init()
+	log.Debug("UpdateSupply by DynamoDB")
+	table := dynamodb.Table(target_table)
+	var supply Supply
+
+	if err := table.Get("id", id).One(&supply); err != nil {
+		return supply, err
+	}
+
+	err := json.Unmarshal([]byte(body), &supply)
+	if err != nil {
+		panic(err.Error())
+		return supply, err
+	}
+
+	log.Debug("Update Data")
+	err = table.Update("id", id).Set("name", supply.Name).Set("price", supply.Price).Set("type", supply.Type).Value(&supply)
+	if err != nil {
+		panic(err.Error())
+		return supply, err
+	}
+	return supply, nil
 }
 
 func supplydelete(target_table string, id string) (Supply, error) {
